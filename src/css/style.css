@@ -10,3 +10,12 @@
   top: 0;
   left: 0;
 }
+
+.gallery {
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-top: 70px;
+  padding-left: 15px;
+  padding-right: 15px;
+  display: flex;
+}
