@@ -25,7 +25,7 @@ function onChangeInput(event) {
   page = 1;
 }
 
-async function onSubmit(event) {
+/*async function onSubmit(event) {
   event.preventDefault();
 
   if (!refs.input.value.trim()) {
@@ -52,6 +52,47 @@ async function onSubmit(event) {
     observer.observe(refs.guard);
   } catch (error) {
     Notiflix.Notify.failure('Sorry, error get data. Please try again.');
+  }
+}*/
+
+// Отримайте посилання на елемент loading-overlay
+const loadingOverlay = document.querySelector('.loading-overlay');
+
+async function onSubmit(event) {
+  event.preventDefault();
+
+  if (!refs.input.value.trim()) {
+    Notiflix.Notify.warning('Please enter data to search');
+    return;
+  }
+
+  // Покажіть елемент завантаження перед виконанням запиту
+  loadingOverlay.style.display = 'flex';
+
+  try {
+    refs.gallery.innerHTML = '';
+    const response = await getQuery(refs.input.value.trim(), page, per_page);
+
+    if (response.data.total === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    } else {
+      // Відображення повідомлення про кількість знайдених зображень тільки якщо є результати
+      Notiflix.Notify.info(
+        `Hooray! We found ${response.data.totalHits} images.`
+      );
+      await makeCard(response.data.hits);
+      SimpleLightboxGallery = new SimpleLightbox('.gallery a');
+      observer.observe(refs.guard);
+    }
+  } catch (error) {
+    Notiflix.Notify.failure('Sorry, error get data. Please try again.');
+  } finally {
+    // Приховати елемент завантаження незалежно від того, чи була помилка
+    loadingOverlay.style.display = 'none';
+    // Очистити поле вводу при помилці або успішному завершенні
+    refs.input.value = '';
   }
 }
 
