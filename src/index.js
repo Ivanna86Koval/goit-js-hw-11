@@ -25,7 +25,9 @@ function onChangeInput(event) {
   page = 1;
 }
 
-/*async function onSubmit(event) {
+const loadingOverlay = document.querySelector('.loading-overlay');
+
+async function onSubmit(event) {
   event.preventDefault();
 
   if (!refs.input.value.trim()) {
@@ -33,11 +35,30 @@ function onChangeInput(event) {
     return;
   }
 
-  if (refs.input.value.trim() === refs.input.value.trim()) {
+  /*if (refs.input.value.trim() === refs.input.value.trim()) {
     page = 1;
-  }
+  }*/
+
+  loadingOverlay.style.display = 'flex';
 
   try {
+    refs.gallery.innerHTML = '';
+    const response = await getQuery(refs.input.value.trim(), page, per_page);
+
+    if (response.data.total === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    } else {
+      Notiflix.Notify.info(
+        `Hooray! We found ${response.data.totalHits} images.`
+      );
+      await makeCard(response.data.hits);
+      SimpleLightboxGallery = new SimpleLightbox('.gallery a');
+      observer.observe(refs.guard);
+    }
+
+    /*try {
     refs.gallery.innerHTML = '';
     const response = await getQuery(refs.input.value.trim(), page, per_page);
     Notiflix.Notify.info(`Hooray! We found ${response.data.totalHits} images.`);
@@ -46,16 +67,17 @@ function onChangeInput(event) {
         'Sorry, there are no images matching your search query. Please try again.'
       );
       return;
-    }
+    }*/
+
     await makeCard(response.data.hits);
     SimpleLightboxGallery = new SimpleLightbox('.gallery a');
     observer.observe(refs.guard);
   } catch (error) {
     Notiflix.Notify.failure('Sorry, error get data. Please try again.');
   }
-}*/
+}
 
-const loadingOverlay = document.querySelector('.loading-overlay');
+/*const loadingOverlay = document.querySelector('.loading-overlay');
 
 async function onSubmit(event) {
   event.preventDefault();
@@ -90,7 +112,7 @@ async function onSubmit(event) {
 
     refs.input.value = '';
   }
-}
+}*/
 
 function onLoadMore(entries, observer) {
   refs.input.addEventListener('change', onChangeInput);
