@@ -1,10 +1,11 @@
 import { getQuery } from './api-pixabay';
-import Notiflix from 'notiflix';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 let page = 1;
-const per_page = 40;
+let per_page = 40;
 let SimpleLightboxGallery = {};
+
 const refs = {
   form: document.querySelector('#search-form'),
   input: document.querySelector('[name="searchQuery"]'),
@@ -19,110 +20,42 @@ const options = {
   rootMargin: '500px',
   threshold: 1.0,
 };
+
 const observer = new IntersectionObserver(onLoadMore, options);
 
 function onChangeInput(event) {
   page = 1;
 }
 
-const loadingOverlay = document.querySelector('.loading-overlay');
-
 async function onSubmit(event) {
   event.preventDefault();
 
   if (!refs.input.value.trim()) {
-    Notiflix.Notify.warning('Please enter data to search');
+    Notify.warning('Please enter data to search');
     return;
   }
 
-  /*if (refs.input.value.trim() === refs.input.value.trim()) {
+  if (refs.input.value.trim() === refs.input.value.trim()) {
     page = 1;
-  }*/
-
-  loadingOverlay.style.display = 'flex';
+  }
 
   try {
     refs.gallery.innerHTML = '';
     const response = await getQuery(refs.input.value.trim(), page, per_page);
-
-    if (response.data.total === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    } else {
-      Notiflix.Notify.info(
-        `Hooray! We found ${response.data.totalHits} images.`
-      );
-      await makeCard(response.data.hits);
-      SimpleLightboxGallery = new SimpleLightbox('.gallery a');
-      observer.observe(refs.guard);
-    }
-
-    /*try {
-    refs.gallery.innerHTML = '';
-    const response = await getQuery(refs.input.value.trim(), page, per_page);
-    Notiflix.Notify.info(`Hooray! We found ${response.data.totalHits} images.`);
+    Notify.info(`Hooray! We found ${response.data.totalHits} images.`);
     if (!response.data.total) {
-      Notiflix.Notify.failure(
+      Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
       return;
-    }*/
+    }
 
     await makeCard(response.data.hits);
     SimpleLightboxGallery = new SimpleLightbox('.gallery a');
     observer.observe(refs.guard);
   } catch (error) {
-    Notiflix.Notify.failure('Sorry, error get data. Please try again.');
+    Notify.failure('Sorry, error get data. Please try again.');
   }
-}
-
-/*const loadingOverlay = document.querySelector('.loading-overlay');
-
-async function onSubmit(event) {
-  event.preventDefault();
-
-  if (!refs.input.value.trim()) {
-    Notiflix.Notify.warning('Please enter data to search');
-    return;
-  }
-
-  loadingOverlay.style.display = 'flex';
-
-  try {
-    refs.gallery.innerHTML = '';
-    const response = await getQuery(refs.input.value.trim(), page, per_page);
-
-    if (response.data.total === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    } else {
-      Notiflix.Notify.info(
-        `Hooray! We found ${response.data.totalHits} images.`
-      );
-      await makeCard(response.data.hits);
-      SimpleLightboxGallery = new SimpleLightbox('.gallery a');
-      observer.observe(refs.guard);
-    }
-  } catch (error) {
-    Notiflix.Notify.failure('Sorry, error get data. Please try again.');
-  } finally {
-    loadingOverlay.style.display = 'none';
-
-    refs.input.value = '';
-  }
-}*/
-
-export function spinnerPlay() {
-  refs.body.classList.add('loading');
-}
-
-export function spinnerStop() {
-  window.setTimeout(function () {
-    refs.body.classList.remove('loading');
-    refs.body.classList.add('loaded');
-  }, 1500);
 }
 
 function onLoadMore(entries, observer) {
@@ -171,37 +104,21 @@ function makeCard(arr) {
   );
 }
 
-function scrollSmooth() {
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
-
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
-}
-
 async function queryLoadMore() {
   try {
     const response = await getQuery(refs.input.value.trim(), page, per_page);
     const max_page = Math.ceil(response.data.totalHits / per_page);
     if (page > max_page) {
       observer.unobserve(refs.guard);
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
+      Notify.info("We're sorry, but you've reached the end of search results.");
       return;
     } else if (page >= max_page) {
       observer.unobserve(refs.guard);
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
+      Notify.info("We're sorry, but you've reached the end of search results.");
     }
-    await makeCard(response.data.hits);
+    makeCard(response.data.hits);
     SimpleLightboxGallery.refresh();
-    await scrollSmooth();
   } catch (error) {
-    Notiflix.Notify.failure('Sorry, error get data. Please try again.');
+    Notify.failure('Sorry, error get data. Please try again.');
   }
 }
